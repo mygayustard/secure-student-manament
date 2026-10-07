@@ -45,11 +45,45 @@ Registration requires a 3–50 character username, valid email, and a password o
 
 | Role | Permissions |
 | --- | --- |
-| `ADMIN` | `GET /api/users`; reserved for all student operations |
-| `TEACHER` | Authenticated profile; prepared for student GET/POST/PUT |
-| `STUDENT` | Authenticated profile; prepared for student GET |
+| `ADMIN` | `GET /api/users`; all student operations |
+| `TEACHER` | Authenticated profile; student GET/POST/PUT |
+| `STUDENT` | Authenticated profile; student GET |
 
-Student CRUD is out of scope. Its intended authorization rules are recorded in `SecurityConfig` as a clearly marked inactive block until those endpoints exist. All other non-auth routes require authentication.
+All other non-auth routes require authentication.
+
+## Student CRUD
+
+All student endpoints require a valid access token. Successful responses contain DTOs and never expose persistence entities.
+
+| Method | Path | Access | Success |
+| --- | --- | --- | --- |
+| `POST` | `/api/students` | ADMIN, TEACHER | 201 Created |
+| `GET` | `/api/students` | ADMIN, TEACHER, STUDENT | 200 OK |
+| `GET` | `/api/students/{id}` | ADMIN, TEACHER, STUDENT | 200 OK |
+| `PUT` | `/api/students/{id}` | ADMIN, TEACHER | 200 OK |
+| `DELETE` | `/api/students/{id}` | ADMIN | 204 No Content |
+
+| Operation | ADMIN | TEACHER | STUDENT |
+| --- | --- | --- | --- |
+| View (list and by id) | Yes | Yes | Yes |
+| Create | Yes | Yes | No |
+| Update | Yes | Yes | No |
+| Delete | Yes | No | No |
+
+Create and update accept the same complete request body. Phone is optional and, when supplied, must be an international E.164 number or a 10-digit Tanzanian local number.
+
+```json
+{
+  "registrationNumber": "UDSM/2026/0142",
+  "fullName": "Neema Mushi",
+  "email": "neema.mushi@gmail.com",
+  "phone": "+255712345678",
+  "gender": "FEMALE",
+  "dateOfBirth": "2003-05-14"
+}
+```
+
+Errors use the shared API error format: `400 Bad Request` for invalid request data (including `fieldErrors`), `401 Unauthorized` for a missing or invalid token, `403 Forbidden` for an authenticated user without the required role, `404 Not Found` for an unknown student id, and `409 Conflict` for a duplicate registration number or email.
 
 ## Token Strategy
 
@@ -71,4 +105,6 @@ A **401 Unauthorized** means authentication is missing or invalid (including bad
 
 ## Postman
 
-Import `postman/secure-student-management.postman_collection.json` and `postman/secure-student-management.postman_environment.json`, then select the environment. Requests are ordered for a normal flow; scripts save access and refresh tokens and exercise refresh rotation and logout. The environment includes development seed credentials; replace them when using another configuration.
+Import `postman/secure-student-management.postman_collection.json` and `postman/secure-student-management.postman_environment.json`, then select the environment. Run the collection in order: it logs in as TEACHER and ADMIN, creates a disposable STUDENT account for the STUDENT list check, and exercises student CRUD and authorization. Set `adminPassword` and `teacherPassword` to the corresponding seed values from `application.properties` before running. The student setup uses a generated username and the test-only `studentPassword`.
+
+The Postman files were not present in this checkout, so these files provide the requested student CRUD flow as a new collection rather than merging with an unavailable prior collection. Import it as a new collection or merge the requests manually if you have an earlier copy.

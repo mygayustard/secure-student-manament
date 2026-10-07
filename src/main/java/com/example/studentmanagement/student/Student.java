@@ -10,7 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,10 +39,6 @@ public class Student {
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    @Pattern(
-        regexp = "^\\(255\\)\\s\\d{3}-\\d{3}\\s?-\\d{3}$",
-        message = "Phone number must follow the format (255) xxx-xxx-xxx"
-    )
     @Column(length = 30)
     private String phone;
 
@@ -73,4 +68,3 @@ public class Student {
     }
 
 }
-

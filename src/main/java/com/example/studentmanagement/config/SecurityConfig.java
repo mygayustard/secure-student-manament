@@ -60,15 +60,19 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()   // CORS preflight
-                .requestMatchers("/api/auth/**").permitAll()              // register, login, refresh, logout
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  
+                .requestMatchers("/api/auth/**").permitAll()              
                 .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
 
-                // Student authorization rules, to enable when student endpoints are implemented:
-                // GET /api/students/** -> ADMIN, TEACHER, STUDENT
-                // POST and PUT /api/students/** -> ADMIN, TEACHER
-                // DELETE /api/students/** -> ADMIN
+                .requestMatchers(HttpMethod.GET, "/api/students", "/api/students/**")
+                    .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                .requestMatchers(HttpMethod.POST, "/api/students")
+                    .hasAnyRole("ADMIN", "TEACHER")
+                .requestMatchers(HttpMethod.PUT, "/api/students/**")
+                    .hasAnyRole("ADMIN", "TEACHER")
+                .requestMatchers(HttpMethod.DELETE, "/api/students/**")
+                    .hasRole("ADMIN")
                 .anyRequest().authenticated())
 
             .exceptionHandling(ex -> ex
@@ -100,7 +104,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(allowedOrigin));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setAllowCredentials(false); // no cookies involved
+        config.setAllowCredentials(false);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

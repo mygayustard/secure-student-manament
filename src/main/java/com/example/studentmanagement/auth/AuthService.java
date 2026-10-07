@@ -65,7 +65,7 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
         User user = userRepository.findByUsernameIgnoreCase(request.username())
-            .orElseThrow(() -> new IllegalStateException("Authenticated user was not found"));
+            .orElseThrow(() -> new IllegalStateException("user not found"));
 
         String accessToken = jwtService.generateAccessToken(user.getUsername(), user.getRoles());
         String refreshToken = refreshTokenService.issue(user);
